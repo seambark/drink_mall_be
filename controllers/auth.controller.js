@@ -23,4 +23,4 @@ authController.loginWithEmail = async (req, res) => {
   }
 };
 
-module.authController = authController;
+module.exports = authController;
