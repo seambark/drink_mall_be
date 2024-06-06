@@ -1,6 +1,5 @@
 const Product = require("../models/Product");
 
-const PAGE_SIZE = 5;
 const productController = {};
 
 productController.createProduct = async (req, res) => {
@@ -37,8 +36,9 @@ productController.createProduct = async (req, res) => {
 
 productController.getProducts = async (req, res) => {
   try {
-    const { page, name } = req.query;
+    const { page, name, pageSize } = req.query;
     const cond = name ? { name: { $regex: name, $options: "i" } } : {};
+    let PAGE_SIZE = pageSize || 5;
     let query = Product.find(cond);
     let response = { status: "success" };
 
