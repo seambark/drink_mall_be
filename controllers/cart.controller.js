@@ -53,7 +53,7 @@ cartController.getCart = async (req, res) => {
 cartController.deleteCartItem = async (req, res) => {
   try {
     const { userId } = req;
-    const { id } = req.params.id;
+    const { id } = req.params;
     const cart = await Cart.findOne({ userId });
     cart.items = cart.items.filter((item) => !item._id.equals(id));
 
