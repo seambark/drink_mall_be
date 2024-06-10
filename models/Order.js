@@ -5,17 +5,17 @@ const Schema = mongoose.Schema;
 const orderSchema = Schema(
   {
     userId: { type: mongoose.ObjectId, ref: User },
-    orderNum: { type: String },
     status: { type: String, default: "preparing" },
-    totalPrice: { type: Number, required: true },
+    totalPrice: { type: Number, required: true, default: 0 },
     shipTo: { type: Object, required: true },
-    contact: { type: String, required: true },
+    contact: { type: Object, required: true },
+    orderNum: { type: String },
     items: [
       {
         productId: { type: mongoose.ObjectId, ref: Product },
-        size: { type: String, required: true },
-        qty: { type: Number, default: 1, required: true },
         price: { type: Number, required: true },
+        qty: { type: Number, required: true, default: 1 },
+        size: { type: String, required: true },
       },
     ],
   },
