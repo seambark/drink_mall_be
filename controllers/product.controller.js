@@ -133,7 +133,7 @@ productController.checkStock = async (item) => {
 };
 
 productController.checkItemListStock = async (itemList) => {
-  const insufficientStockItems = {};
+  const insufficientStockItems = [];
 
   await Promise.all(
     itemList.map(async (item) => {
