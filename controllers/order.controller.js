@@ -94,7 +94,7 @@ orderController.getOrderList = async (req, res) => {
 
 orderController.updateOrder = async (req, res) => {
   try {
-    const { id } = req;
+    const { id } = req.params;
     const { status } = req.body;
     const order = await Order.findByIdAndUpdate(
       id,
