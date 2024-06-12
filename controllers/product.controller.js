@@ -175,8 +175,8 @@ productController.deductItemStock = async (itemList) => {
           );
         }
 
-        product.stock[item.size] -= item.qty;
-        await product.save();
+        product.stock[item.size] = product.stock[item.size] - item.qty;
+        return product.save();
       })
     );
   } catch (error) {
