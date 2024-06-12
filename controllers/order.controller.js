@@ -16,7 +16,7 @@ orderController.createOrder = async (req, res) => {
     // 재고가 충분하지 않은 아이템이 있으면 -> 에러
     if (insufficientStockItems.length > 0) {
       const errorMessage = insufficientStockItems.reduce(
-        (total, item) => (total += `${item.message} \n;`),
+        (total, item) => (total += `${item.message} \n`),
         ""
       );
       throw new Error(errorMessage);
