@@ -132,55 +132,110 @@ productController.getProductById = async (req, res) => {
 //   return { isVerify: true };
 // };
 
-productController.checkItemListStock = async (itemList) => {
+// productController.checkItemListStock = async (itemList) => {
+//   try {
+//     const products = await Product.find({
+//       _id: { $in: itemList.map((item) => item.productId) },
+//     });
+
+//     const productMap = products.reduce((map, product) => {
+//       map[product._id] = product;
+//       return map;
+//     }, {});
+
+//     const insufficientStockItems = itemList
+//       .filter((item) => {
+//         const product = productMap[item.productId];
+//         return product.stock[item.size] < item.qty;
+//       })
+//       .map((item) => {
+//         return {
+//           item,
+//           message: `${productMap[item.productId].name}의 ${
+//             item.size
+//           }재고가 부족합니다.`,
+//         };
+//       });
+
+//     return insufficientStockItems;
+//   } catch (error) {
+//     throw new Error("재고 확인 중 오류가 발생했습니다.");
+//   }
+// };
+
+// productController.deductItemStock = async (itemList) => {
+//   try {
+//     await Promise.all(
+//       itemList.map(async (item) => {
+//         const product = await Product.findById(item.productId);
+
+//         if (!product) {
+//           throw new Error(
+//             `ID에 해당하는 제품을 찾을 수 없습니다: ${item.productId}`
+//           );
+//         }
+
+//         product.stock[item.size] = product.stock[item.size] - item.qty;
+//         return product.save();
+//       })
+//     );
+//   } catch (error) {
+//     throw new Error("제품 재고 업데이트에 실패하였습니다.");
+//   }
+// };
+
+productController.checkStock = async (item) => {
   try {
-    const products = await Product.find({
-      _id: { $in: itemList.map((item) => item.productId) },
-    });
+    const product = await Product.findById(item.productId);
 
-    const productMap = products.reduce((map, product) => {
-      map[product._id] = product;
-      return map;
-    }, {});
-
-    const insufficientStockItems = itemList
-      .filter((item) => {
-        const product = productMap[item.productId];
-        return product.stock[item.size] < item.qty;
-      })
-      .map((item) => {
-        return {
-          item,
-          message: `${productMap[item.productId].name}의 ${
-            item.size
-          }재고가 부족합니다.`,
-        };
-      });
-
-    return insufficientStockItems;
-  } catch (error) {
-    throw new Error("재고 확인 중 오류가 발생했습니다.");
+    if (product.stock[item.size] < item.qty) {
+      return {
+        isVerify: false,
+        message: `${product.name}의 ${item.size} 재고가 부족합니다. \n현재 ${
+          product.stock[item.size]
+        }개 재고가 있습니다.`,
+      };
+    } else {
+      return { isVerify: true };
+    }
+  } catch (e) {
+    res.status(400).json({ status: "fail", error: e.message });
   }
 };
 
-productController.deductItemStock = async (itemList) => {
+productController.processStock = async (item) => {
+  try {
+    const product = await Product.findById(item.productId);
+    const newStock = { ...product.stock };
+    newStock[item.size] -= item.qty;
+    product.stock = newStock;
+    await product.save();
+  } catch (e) {
+    res.status(400).json({ status: "fail", error: e.message });
+  }
+};
+
+productController.checkItemsStock = async (items) => {
+  const insufficientStockItems = [];
   try {
     await Promise.all(
-      itemList.map(async (item) => {
-        const product = await Product.findById(item.productId);
-
-        if (!product) {
-          throw new Error(
-            `ID에 해당하는 제품을 찾을 수 없습니다: ${item.productId}`
-          );
+      items.map(async (item) => {
+        const stockCheck = await productController.checkStock(item);
+        if (!stockCheck.isVerify) {
+          insufficientStockItems.push({ item, message: stockCheck.message });
         }
-
-        product.stock[item.size] = product.stock[item.size] - item.qty;
-        return product.save();
       })
     );
-  } catch (error) {
-    throw new Error("제품 재고 업데이트에 실패하였습니다.");
+    if (insufficientStockItems.length === 0) {
+      await Promise.all(
+        items.map(async (item) => {
+          await productController.processStock(item);
+        })
+      );
+    }
+    return insufficientStockItems;
+  } catch (e) {
+    res.status(400).json({ status: "fail", error: e.message });
   }
 };
 

@@ -3,24 +3,25 @@ const { randomStringGenerator } = require("../utils/randomStringGenerator");
 const productController = require("./product.controller");
 
 const orderController = {};
-
 orderController.createOrder = async (req, res) => {
   try {
-    const { userId } = req;
+    const userId = req.userId;
     const { shipTo, contact, totalPrice, orderList } = req.body;
 
-    const insufficientStockItems = await productController.checkItemListStock(
+    // 재고확인 & 재고 업데이트
+    const insufficientStockItems = await productController.checkItemsStock(
       orderList
     );
 
+    // 재고가 충분하지 않은 아이템이 있으면 -> 에러
     if (insufficientStockItems.length > 0) {
-      const errorMessage = insufficientStockItems
-        .map((item) => item.message)
-        .join(" ");
+      const errorMessage = insufficientStockItems.reduce(
+        (total, item) => (total += `${item.message} \n;`),
+        ""
+      );
       throw new Error(errorMessage);
     }
-
-    await productController.deductItemStock(orderList);
+    const orderNum = randomStringGenerator();
 
     const newOrder = new Order({
       userId,
@@ -28,16 +29,50 @@ orderController.createOrder = async (req, res) => {
       shipTo,
       contact,
       items: orderList,
-      orderNum: randomStringGenerator(),
+      orderNum: orderNum,
     });
 
     await newOrder.save();
 
-    res.status(200).json({ status: "success", orderNum: newOrder.orderNum });
-  } catch (error) {
-    res.status(400).json({ status: "fail", error: error.message });
+    return res.status(200).json({ status: "ok", orderNum: orderNum });
+  } catch (e) {
+    return res.status(400).json({ status: "fail", error: e.message });
   }
 };
+// orderController.createOrder = async (req, res) => {
+//   try {
+//     const { userId } = req;
+//     const { shipTo, contact, totalPrice, orderList } = req.body;
+
+//     const insufficientStockItems = await productController.checkItemListStock(
+//       orderList
+//     );
+
+//     if (insufficientStockItems.length > 0) {
+//       const errorMessage = insufficientStockItems
+//         .map((item) => item.message)
+//         .join(" ");
+//       throw new Error(errorMessage);
+//     }
+
+//     await productController.deductItemStock(orderList);
+
+//     const newOrder = new Order({
+//       userId,
+//       totalPrice,
+//       shipTo,
+//       contact,
+//       items: orderList,
+//       orderNum: randomStringGenerator(),
+//     });
+
+//     await newOrder.save();
+
+//     res.status(200).json({ status: "success", orderNum: newOrder.orderNum });
+//   } catch (error) {
+//     res.status(400).json({ status: "fail", error: error.message });
+//   }
+// };
 
 orderController.getOrder = async (req, res) => {
   try {
