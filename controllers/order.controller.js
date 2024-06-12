@@ -14,10 +14,9 @@ orderController.createOrder = async (req, res) => {
     );
 
     if (insufficientStockItems.length > 0) {
-      const errorMessage = insufficientStockItems.reduce(
-        (total, item) => (total += item.message),
-        ""
-      );
+      const errorMessage = insufficientStockItems
+        .map((item) => item.message)
+        .join(" ");
       throw new Error(errorMessage);
     }
 
