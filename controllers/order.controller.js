@@ -20,6 +20,8 @@ orderController.createOrder = async (req, res) => {
       throw new Error(errorMessage);
     }
 
+    await productController.deductItemStock(orderList);
+
     const newOrder = new Order({
       userId,
       totalPrice,
