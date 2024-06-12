@@ -62,12 +62,12 @@ orderController.getOrder = async (req, res) => {
 
 orderController.getOrderList = async (req, res) => {
   try {
-    const { page, orderNum, pageSize } = req.query;
+    const { page, ordernum, pageSize } = req.query;
     let PAGE_SIZE = pageSize || 10;
     let cond = {};
-    if (orderNum) {
+    if (ordernum) {
       cond = {
-        orderNum: { $regex: orderNum, $options: "i" },
+        orderNum: { $regex: ordernum, $options: "i" },
       };
     }
 
