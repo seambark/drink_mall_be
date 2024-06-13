@@ -33,7 +33,7 @@ authController.loginWithGoogle = async (req, res) => {
     const { token } = req.body;
     const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
     const ticket = await googleClient.verifyIdToken({
-      idToken,
+      idToken: token,
       audience: GOOGLE_CLIENT_ID,
     });
     const { email, name } = ticket.getPayload();
